@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TANDEM Solar Value Chain — Ecosystem Chain Map</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --teal:#1D9E75;--teal-lt:#9FE1CB;--teal-dk:#085041;
+  --purple:#534AB7;--purple-lt:#AFA9EC;--purple-dk:#26215C;
+  --amber:#BA7517;--amber-lt:#FAC775;--amber-dk:#412402;
+  --blue:#185FA5;--blue-lt:#85B7EB;--blue-dk:#042C53;
+  --coral:#D85A30;--coral-lt:#F0997B;--coral-dk:#4A1B0C;
+  --green:#3B6D11;--green-lt:#97C459;--green-dk:#173404;
+  --gray:#888780;--gray-lt:#D3D1C7;--gray-dk:#2C2C2A;
+  --ink:#1a1a18;--muted:#5f5e5a;--hint:#888780;
+  --border:rgba(0,0,0,0.12);--border-strong:rgba(0,0,0,0.22);
+  --surface:#fafaf8;--page:#f5f4f0;
+}
+body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--page);color:var(--ink);min-height:100vh}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border-width:0}
+
+/* ── page ────────────────────────────────────────── */
+.page{padding:1.5rem 1.5rem 3rem}
+.page-title{font-size:22px;font-weight:500;margin-bottom:3px}
+.page-sub{font-size:14px;color:var(--muted);line-height:1.6;max-width:900px;margin-bottom:1.25rem}
+
+/* ── toolbar ─────────────────────────────────────── */
+.toolbar{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;margin-bottom:10px}
+.btn{padding:5px 13px;border-radius:7px;border:0.5px solid var(--border-strong);background:#fff;font-size:12px;cursor:pointer;font-family:inherit;color:var(--muted);transition:background .12s}
+.btn:hover{background:var(--gray-lt)}
+.btn.active{font-weight:500}
+.btn.all.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+.btn.tandem-only.active{background:var(--teal);color:#fff;border-color:var(--teal)}
+.btn.clear-filter{background:none;border-color:#D85A30;color:#993C1D;display:none}
+.btn.clear-filter:hover{background:#FAECE7}
+.btn.clear-filter.visible{display:inline-block}
+.divider{width:1px;height:20px;background:var(--border-strong);margin:0 4px}
+.filter-section{margin-bottom:10px}
+.filter-toggle{background:none;border:0.5px solid var(--border-strong);border-radius:7px;padding:5px 13px;font-size:12px;cursor:pointer;font-family:inherit;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
+.filter-toggle:hover{background:var(--gray-lt)}
+.filter-arrow{transition:transform .18s;font-size:10px;display:inline-block}
+.filter-toggle.open .filter-arrow{transform:rotate(90deg)}
+.actor-groups{display:none;padding:10px 0 4px;gap:10px;flex-direction:column}
+.actor-groups.open{display:flex}
+.actor-group{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.ag-label{font-size:10px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;color:var(--hint);min-width:90px;text-align:right;flex-shrink:0;margin-right:4px}
+.actor-btn{padding:4px 10px;border-radius:5px;border:0.5px solid;background:#fff;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:background .1s}
+.actor-btn:hover{filter:brightness(0.94)}
+.actor-btn.active{font-weight:500}
+
+/* ── hint bar ─────────────────────────────────────── */
+.hint-bar{font-size:11.5px;color:var(--hint);margin-bottom:10px;font-style:italic}
+
+/* ── chain grid ──────────────────────────────────── */
+.chain-wrap{overflow-x:auto;border-radius:12px;border:0.5px solid var(--border);background:var(--surface)}
+.chain{display:grid;min-width:max-content}
+/* stage columns are set via JS */
+
+/* ── lane header col ─────────────────────────────── */
+.lane-header-col{position:sticky;left:0;z-index:20;background:var(--surface);border-right:0.5px solid var(--border)}
+.lane-label{
+  display:flex;align-items:center;justify-content:flex-end;
+  padding:10px 14px;text-align:right;
+  font-size:11px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;
+  min-width:150px;border-bottom:0.5px solid var(--border);
+  min-height:130px;
+}
+
+/* ── stage headers ───────────────────────────────── */
+.stage-head{
+  padding:12px 14px 10px;border-bottom:0.5px solid var(--border);
+  border-right:0.5px solid var(--border);cursor:pointer;
+  transition:background .12s;min-width:190px;
+}
+.stage-head:hover{background:var(--gray-lt)}
+.stage-head.tandem-stage{background:var(--teal-lt)}
+.stage-head.tandem-stage:hover{background:#d3efdf}
+.stage-head.active-stage{outline:2px solid var(--teal);outline-offset:-2px}
+.stage-num{font-size:11px;font-weight:500;color:var(--hint);margin-bottom:3px}
+.stage-name{font-size:13px;font-weight:500;color:var(--ink);line-height:1.35;margin-bottom:4px}
+.stage-tag{display:inline-block;font-size:9.5px;padding:1px 6px;border-radius:3px;font-weight:500}
+.stage-tag.tandem{background:var(--teal-lt);color:var(--teal-dk);border:0.5px solid var(--teal)}
+.stage-tag.ecosystem{background:var(--gray-lt);color:var(--gray-dk);border:0.5px solid var(--gray)}
+.stage-flow{font-size:10.5px;color:var(--muted);margin-top:5px;line-height:1.4}
+
+/* ── stage corner (top-left) ─────────────────────── */
+.corner{
+  position:sticky;left:0;z-index:30;
+  background:var(--surface);
+  border-right:0.5px solid var(--border);
+  border-bottom:0.5px solid var(--border);
+  padding:10px 14px;
+  min-width:150px;
+}
+.corner p{font-size:11px;color:var(--hint)}
+
+/* ── cells ───────────────────────────────────────── */
+.cell{
+  padding:10px 12px;
+  border-right:0.5px solid var(--border);
+  border-bottom:0.5px solid var(--border);
+  min-height:130px;
+  vertical-align:top;
+  min-width:190px;
+  transition:background .12s;
+}
+.cell-empty{background:rgba(0,0,0,0.03)}
+.actor-card{
+  display:inline-flex;flex-direction:column;
+  border-radius:7px;border:0.5px solid;
+  padding:6px 9px;margin:3px;
+  cursor:pointer;transition:opacity .15s,box-shadow .12s;
+  max-width:160px;
+}
+.actor-card:hover{box-shadow:0 1px 5px rgba(0,0,0,0.12)}
+.actor-card.tandem-actor{border-width:1.5px}
+.actor-card.dimmed{opacity:0.15;pointer-events:none}
+.actor-card .ac-name{font-size:11px;font-weight:500;line-height:1.3;margin-bottom:2px}
+.actor-card .ac-act{font-size:10px;line-height:1.35;color:inherit;opacity:0.75}
+.tandem-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--teal);margin-right:3px;flex-shrink:0;margin-top:1px}
+
+/* ── detail panel (bottom drawer) ───────────────── */
+#detail{
+  position:fixed;bottom:0;left:0;right:0;
+  background:#fff;border-top:0.5px solid var(--border-strong);
+  padding:16px 24px 20px;
+  transform:translateY(100%);
+  transition:transform .22s ease;
+  z-index:100;
+  max-height:46vh;
+  overflow-y:auto;
+}
+#detail.open{transform:translateY(0)}
+.detail-inner{max-width:1200px;margin:0 auto}
+.detail-row{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
+.detail-main{flex:1;min-width:260px}
+.detail-stage-info{flex:2;min-width:260px}
+#detail h3{font-size:16px;font-weight:500;margin-bottom:4px}
+.detail-tag{display:inline-block;font-size:11px;padding:2px 9px;border-radius:4px;font-weight:500;margin-bottom:8px}
+.detail-section{margin-bottom:10px}
+.detail-section-title{font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--hint);margin-bottom:3px}
+.detail-section-body{font-size:12.5px;color:var(--muted);line-height:1.6}
+.close-btn{position:absolute;top:12px;right:16px;background:none;border:none;font-size:18px;cursor:pointer;color:var(--hint);padding:2px 5px;border-radius:4px}
+.close-btn:hover{background:var(--gray-lt);color:var(--ink)}
+.stage-actor-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.stage-actor-pill{padding:3px 10px;border-radius:5px;font-size:11px;font-weight:500;cursor:pointer;border:0.5px solid}
+
+/* ── flow arrows between stages ─────────────────── */
+.flow-row{display:grid;background:var(--surface);min-width:max-content}
+.flow-cell{
+  min-width:190px;min-height:32px;display:flex;align-items:center;
+  justify-content:center;border-right:0.5px solid var(--border);
+  position:relative;
+}
+.flow-cell:first-child{min-width:150px;position:sticky;left:0;background:var(--surface);z-index:10;border-right:0.5px solid var(--border)}
+.flow-arrow{
+  width:100%;height:2px;background:linear-gradient(90deg,var(--teal) 0%,rgba(29,158,117,0.3) 100%);
+  position:relative;display:flex;align-items:center;
+}
+.flow-arrow::after{
+  content:'';position:absolute;right:-1px;
+  border-left:7px solid var(--teal);border-top:5px solid transparent;border-bottom:5px solid transparent;
+}
+.flow-label{position:absolute;top:-11px;left:50%;transform:translateX(-50%);font-size:9.5px;color:var(--teal-dk);background:#fff;padding:0 4px;white-space:nowrap;border:0.5px solid var(--teal-lt)}
+
+/* ── legend ──────────────────────────────────────── */
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;padding:10px 0 0;font-size:11.5px;color:var(--muted)}
+.leg{display:flex;align-items:center;gap:5px}
+.leg-swatch{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+</style>
+</head>
+<body>
+<div class="page">
+<h1 class="sr-only">TANDEM solar value chain ecosystem chain map</h1>
+<p class="page-title">Solar value chain — ecosystem chain map</p>
+<p class="page-sub">Activities at each stage of the solar value chain, the actors involved, and how they connect sequentially. Click any actor card to see their role at that stage. Click a stage header to see all actors in that stage. Use filters to highlight specific actors or TANDEM activities only.</p>
+
+<div class="toolbar">
+  <button class="btn all active" onclick="setView('all')">Show all</button>
+  <button class="btn tandem-only" onclick="setView('tandem')">TANDEM activities only</button>
+  <div class="divider"></div>
+  <button class="btn clear-filter" id="clear-btn" onclick="clearActorFilter()">&#x2715; Clear actor filter</button>
+</div>
+<div class="filter-section">
+  <button class="filter-toggle" id="filter-toggle" onclick="toggleFilters()">
+    <span class="filter-arrow">&#x25B6;</span> Highlight an actor across all stages
+  </button>
+  <div class="actor-groups" id="actor-groups"></div>
+</div>
+<p class="hint-bar">Scroll right to move through value chain stages &nbsp;·&nbsp; Click any actor card or stage header to open details below</p>
+
+<div class="chain-wrap" id="chain-wrap">
+  <div class="chain" id="chain"></div>
+</div>
+
+<div class="legend">
+  <div class="leg"><div class="leg-swatch" style="background:var(--teal-lt);border:1.5px solid var(--teal)"></div>TANDEM actor</div>
+  <div class="leg"><div class="leg-swatch" style="background:#f0ece3;border:0.5px solid #b4b2a9"></div>Ecosystem actor (not directly TANDEM)</div>
+  <div class="leg"><div class="leg-swatch" style="background:var(--teal-lt);border:0.5px solid var(--border)"></div>TANDEM-led stage</div>
+  <div class="leg" style="align-items:center">
+    <svg width="28" height="10"><defs><marker id="alg" viewBox="0 0 6 6" refX="4" refY="3" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L6 3L0 6" fill="none" stroke="var(--teal)" stroke-width="1.5"/></marker></defs><line x1="0" y1="5" x2="22" y2="5" stroke="var(--teal)" stroke-width="2" marker-end="url(#alg)"/></svg>
+    Sequential flow
+  </div>
+</div>
+</div><!-- /page -->
+
+<!-- Detail panel -->
+<div id="detail">
+  <div class="detail-inner">
+    <button class="close-btn" onclick="closeDetail()">&#x2715;</button>
+    <div class="detail-row">
+      <div class="detail-main">
+        <h3 id="d-title"></h3>
+        <div id="d-tag" class="detail-tag"></div>
+        <div class="detail-section">
+          <div class="detail-section-title">Activity at this stage</div>
+          <div class="detail-section-body" id="d-activity"></div>
+        </div>
+        <div class="detail-section">
+          <div class="detail-section-title">Input from previous stage</div>
+          <div class="detail-section-body" id="d-input"></div>
+        </div>
+        <div class="detail-section">
+          <div class="detail-section-title">Output to next stage</div>
+          <div class="detail-section-body" id="d-output"></div>
+        </div>
+      </div>
+      <div class="detail-stage-info" id="d-stage-info">
+        <div class="detail-section-title" id="d-stage-label"></div>
+        <div class="detail-section-body" id="d-stage-desc"></div>
+        <div class="detail-section-title" style="margin-top:10px">All actors at this stage</div>
+        <div class="stage-actor-list" id="d-stage-actors"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   DATA
+═══════════════════════════════════════════════════ */
+const COLORS={
+  govpol:{border:"#D85A30",bg:"#F0997B",text:"#4A1B0C"},
+  supply:{border:"#BA7517",bg:"#FAC775",text:"#412402"},
+  finance:{border:"#185FA5",bg:"#85B7EB",text:"#042C53"},
+  enabler:{border:"#534AB7",bg:"#AFA9EC",text:"#26215C"},
+  demand:{border:"#1D9E75",bg:"#9FE1CB",text:"#085041"},
+  dev:{border:"#3B6D11",bg:"#97C459",text:"#173404"},
+};
+
+const LANES=[
+  {id:"govpol", label:"Policy, standards\n& development"},
+  {id:"supply", label:"Solar supply chain"},
+  {id:"finance", label:"Finance & capital"},
+  {id:"enabler", label:"Service enablers\n& consortium"},
+  {id:"demand", label:"MSMEs & market"},
+  {id:"dev", label:"Development &\nhumanitarian"},
+];
+
+/* ── stages ─────────────────────────────────────── */
+const STAGES=[
+  {
+    id:"s1", num:"Stage 1",
+    name:"Standards, policy\n& procurement setup",
+    tandem:true,
+    flow:"Quality frameworks, import standards, and enabling policy that determine which equipment enters Nigeria and at what cost",
+    input:"Policy mandate, international standards",
+    output:"Technical SOPs, approved vendor list, duty/tariff framework, industry standards",
+  },
+  {
+    id:"s2", num:"Stage 2",
+    name:"Capital raising\n& equipment production",
+    tandem:true,
+    flow:"Finance mobilised and equipment manufactured upstream before entering the Nigerian market",
+    input:"Standards and policy framework from Stage 1",
+    output:"Solar equipment ready for export; capital committed for solar lending",
+  },
+  {
+    id:"s3", num:"Stage 3",
+    name:"Importation, distribution\n& domestic logistics",
+    tandem:true,
+    flow:"Equipment crosses the border, passes quality screening, reaches domestic warehouses, and is distributed to retailers and installers",
+    input:"Manufactured equipment and capital from Stage 2; import duty and inspection frameworks from Stage 1",
+    output:"Equipment in domestic distribution network; installers can procure",
+  },
+  {
+    id:"s4", num:"Stage 4",
+    name:"Demand identification\n& cluster formation",
+    tandem:true,
+    flow:"MSMEs with acute power and preservation needs are identified, mapped, organised into clusters, and prepared to engage with service providers",
+    input:"Community and geographic data; cooperative and association networks",
+    output:"Transaction-ready MSME clusters; cooperative demand commitments; booking agent deployment",
+  },
+  {
+    id:"s5", num:"Stage 5",
+    name:"Financing, feasibility\n& product design",
+    tandem:true,
+    flow:"Finance products are structured and matched to MSME cash flows; technical feasibility is assessed; financing is approved before deployment",
+    input:"MSME cluster demand from Stage 4; equipment in distribution from Stage 3",
+    output:"Finance products activated; technical specifications confirmed; deployment authorised",
+  },
+  {
+    id:"s6", num:"Stage 6",
+    name:"Installation\n& deployment",
+    tandem:true,
+    flow:"Equipment is transported to cluster sites, installed to standard, audited for quality, and handed over to MSMEs and hub operators",
+    input:"Finance approval from Stage 5; equipment from distribution network; trained installers from Micro-Enabler Network",
+    output:"Installed, operational solar and preservation systems; post-install QA audit completed",
+  },
+  {
+    id:"s7", num:"Stage 7",
+    name:"Operation, maintenance\n& remote monitoring",
+    tandem:true,
+    flow:"Systems generate productive time for MSMEs; faults are detected and repaired quickly; payment is collected incrementally; service quality is monitored",
+    input:"Operational systems from Stage 6; MSME usage and payment data",
+    output:"Productive time restored; payment flows generated; service quality records; monitoring data",
+  },
+  {
+    id:"s8", num:"Stage 8",
+    name:"Market access\n& productive use",
+    tandem:true,
+    flow:"Solar-powered MSMEs use restored productive time to sell, process, and supply markets; aggregators collect produce; payment flows are captured",
+    input:"Operational systems and productive time from Stage 7; aggregator linkages from Demand Engine",
+    output:"MSME revenue; aggregator offtake; market transaction records; payment flow data",
+  },
+  {
+    id:"s9", num:"Stage 9",
+    name:"Portfolio aggregation,\ncapital crowding & scale",
+    tandem:true,
+    flow:"MSME payment flows are aggregated into investable portfolios; private capital is crowded in; evidence is generated for scale decisions",
+    input:"Payment flow data from Stage 7 and 8; pilot performance evidence from CTH",
+    output:"Investable portfolio; crowded-in private capital; scale model; evidence report",
+  },
+];
+
+/* ── actors (with lane, tandem, and per-stage entries) ── */
+const ACTORS=[
+  /* ── GOVPOL ─────────────────────────────────────── */
+  {id:"SON",         name:"Standards Org. of Nigeria", lane:"govpol", tandem:true,
+   stages:{
+    s1:{act:"Sets national technical standards for solar equipment; provides reference framework for import screening",input:"International IEC standards",output:"National solar equipment standards"},
+    s3:{act:"Reference standards for pre-shipment inspection; approval of compliant equipment",input:"Import applications",output:"Standards certification framework"},
+   }},
+  {id:"REAN",        name:"REAN (Solar association)",  lane:"govpol", tandem:false,
+   stages:{
+    s1:{act:"Advocates for import duty reform; coordinates industry technical standards; shares market intelligence with members",input:"Policy landscape",output:"Industry standard positions; policy recommendations"},
+    s2:{act:"Facilitates OEM and developer linkages; advocates for enabling investment environment",input:"Market intelligence",output:"Investor connections; policy advocacy"},
+   }},
+  {id:"min-power",   name:"Ministry of Power",         lane:"govpol", tandem:false,
+   stages:{
+    s1:{act:"Sets import duty regime (currently 70%+) on solar equipment; issues energy sector policy; grid expansion mandates",input:"Federal budget; energy policy",output:"Import tariff schedule; energy policy framework"},
+    s3:{act:"Administers import levies and duties on equipment; issues exceptions and waivers where applicable",input:"Import declarations",output:"Duty assessments; clearance approvals"},
+   }},
+  {id:"min-agric",   name:"Ministry of Agriculture",   lane:"govpol", tandem:false,
+   stages:{
+    s4:{act:"Agricultural extension officers provide community access channel to smallholder clusters; state-level farmer databases",input:"Community relationships",output:"Cluster access; farmer introductions"},
+   }},
+  {id:"REA",         name:"Rural Electrification Agency", lane:"govpol", tandem:true,
+   stages:{
+    s1:{act:"Issues rural electrification mandate; administers the $750M Distributed Access to Renewable Energy Scale Up (DARES) project; sets productive-use solar eligibility criteria",input:"Federal policy; World Bank DARES funding",output:"Electrification targets; DARES grants available"},
+    s5:{act:"Provides subsidy and grant components under DARES for qualifying solar deployments in underserved communities",input:"DARES application",output:"Grants and subsidies; co-financing"},
+    s9:{act:"Potential co-funding partner for scale-up beyond pilot period; aligns with TANDEM evidence base",input:"Pilot performance data",output:"Scale co-investment commitment"},
+   }},
+  {id:"state-gov",   name:"State governments",         lane:"govpol", tandem:false,
+   stages:{
+    s4:{act:"Local government facilitation of community meetings; land use permissions for hub sites; social protection channels",input:"Community structures",output:"Hub site permissions; community endorsement"},
+    s6:{act:"Land use and site approval for solar hubs and aggregation centres in pilot clusters",input:"Hub design and location plan",output:"Site approval; regulatory clearance"},
+   }},
+
+  /* ── SUPPLY ─────────────────────────────────────── */
+  {id:"oem",         name:"OEM manufacturers",         lane:"supply", tandem:false,
+   stages:{
+    s1:{act:"Produce technical specifications for equipment; comply with or influence international standards",input:"R&D; international standards",output:"Technical datasheets; compliance documentation"},
+    s2:{act:"Manufacture solar panels, batteries, inverters, and productive-use appliances for export markets",input:"Raw materials; capital",output:"Manufactured solar equipment"},
+    s3:{act:"Ship equipment to Nigerian importers; provide certificates of conformity and warranty documentation",input:"Distributor purchase orders",output:"Equipment shipments; conformity certificates"},
+   }},
+  {id:"distributor", name:"Wholesale distributors",    lane:"supply", tandem:false,
+   stages:{
+    s3:{act:"Import and clear equipment through customs; warehouse inventory; distribute to retailers and installers nationally",input:"Imported equipment; import duty payments",output:"Domestic equipment inventory; distributor stock"},
+   }},
+  {id:"retailer",    name:"Solar retailers",           lane:"supply", tandem:false,
+   stages:{
+    s3:{act:"Retail solar equipment and components to installers and end-users; stock spare parts",input:"Distributor wholesale inventory",output:"Retail stock available to installers and MSMEs"},
+   }},
+  {id:"paygo",       name:"PAYGo solar companies",     lane:"supply", tandem:true,
+   stages:{
+    s2:{act:"Raise capital from DFIs and impact investors to fund PAYG hardware and consumer credit portfolios",input:"Impact investor term sheets",output:"Consumer credit facility; equipment procurement"},
+    s5:{act:"Offer bundled finance-plus-hardware products with embedded PAYG metering; assess MSME credit via airtime/mobile money proxies",input:"MSME demand; mobile money data",output:"PAYG contracts; equipment credit"},
+    s6:{act:"Deploy equipment to PAYG customers; install and activate remote metering systems",input:"PAYG contracts",output:"Deployed and metered systems"},
+    s7:{act:"Remotely monitor PAYG system performance; manage payment lockout for non-payers; provide after-sales service",input:"System performance data; payment data",output:"Uptime data; payment collections"},
+   }},
+  {id:"logistics",   name:"Logistics & dispatch",      lane:"supply", tandem:false,
+   stages:{
+    s3:{act:"Domestic freight movement of equipment from port to warehouse and from warehouse to retailer",input:"Distributor dispatch orders",output:"Equipment at domestic distribution points"},
+    s6:{act:"Last-mile delivery of solar components and equipment to cluster installation sites",input:"Installer purchase orders; dispatch schedules",output:"Equipment on-site and ready for installation"},
+   }},
+  {id:"spare-parts", name:"Spare parts suppliers",     lane:"supply", tandem:false,
+   stages:{
+    s6:{act:"Supply critical replacement components (batteries, inverters, mounting hardware) needed for installation and commissioning",input:"Installer procurement orders",output:"Installation-stage components available"},
+    s7:{act:"Replenish spare parts inventory at cluster level; supply components for O&M repairs on demand",input:"Micro-Enabler Network spare parts requests",output:"Repair-ready parts at cluster hub"},
+   }},
+  {id:"telecom",     name:"Mobile network operators",  lane:"supply", tandem:false,
+   stages:{
+    s7:{act:"Provide mobile data connectivity for remote monitoring platform, booking agent devices, and mobile money payment rails",input:"Infrastructure coverage",output:"Connectivity for platform, monitoring, payments"},
+    s8:{act:"Enable mobile money transactions for MSME payment collection and market trading",input:"Network coverage",output:"Mobile payment rails active"},
+   }},
+  {id:"solar-platform", name:"Solar Market Platform",  lane:"supply", tandem:true,
+   stages:{
+    s4:{act:"Provides digital interface for MSME cluster enrolment, service discovery, and booking; booking agent interface for offline users",input:"Demand Engine cluster data; vetted enabler listings",output:"MSME-to-enabler matches; booking pipeline"},
+    s7:{act:"Remote monitoring of system performance; service scheduling and dispatch; payment tracking; quality rating updates",input:"IoT monitoring data; payment data",output:"Performance records; quality ratings; payment data"},
+    s8:{act:"Tracks MSME revenue-generating transactions; records payment flows for Capital Engine portfolio data",input:"MSME usage and transaction data",output:"Payment flow dataset; credit profile data"},
+   }},
+
+  /* ── FINANCE ─────────────────────────────────────── */
+  {id:"MCF",         name:"Mastercard Foundation",     lane:"finance", tandem:true,
+   stages:{
+    s2:{act:"Provides anchor philanthropic capital as first-loss tranche enabling blended finance structure; funds TANDEM pilot",input:"Young Africa Works strategy",output:"Philanthropic anchor capital committed"},
+    s9:{act:"Receives quarterly evidence reports from CTH; approves scale decisions; leverages network for additional co-investment",input:"CTH pilot evidence reports",output:"Scale mandate; network co-investment introductions"},
+   }},
+  {id:"impact-inv",  name:"Impact investors & DFIs",   lane:"finance", tandem:true,
+   stages:{
+    s2:{act:"Provide development capital to solar companies, PAYGo providers, and blended finance vehicles; fund OEM supply chains",input:"Business cases; impact frameworks",output:"Capital deployed to solar sector"},
+    s9:{act:"Invest in aggregated MSME solar payment flow portfolios; provide longer-tenor capital once credit enhancement is in place",input:"Capital Engine portfolio documentation; credit enhancement",output:"Crowded-in private capital at 4:1 ratio"},
+   }},
+  {id:"WB-IFC",      name:"World Bank & IFC",          lane:"finance", tandem:false,
+   stages:{
+    s1:{act:"Co-funds the DARES project via REA; provides policy dialogue and technical assistance for off-grid frameworks",input:"World Bank lending",output:"DARES grant facility; policy framework support"},
+    s9:{act:"Potential investor in aggregated TANDEM portfolios; provides market system strengthening support for solar scale-up",input:"TANDEM pilot evidence; Capital Engine portfolio",output:"Market systems investment; co-financing"},
+   }},
+  {id:"comm-bank",   name:"Commercial banks",          lane:"finance", tandem:false,
+   stages:{
+    s2:{act:"Provide debt capital to solar developers and distributors at commercial rates (limited engagement due to risk perception)",input:"Balance sheet; risk models",output:"Commercial debt capital (limited)"},
+    s9:{act:"Post-pilot aspiration: engage as long-term capital providers once MSME solar credit profile is established",input:"Established credit history from Capital Engine",output:"Commercial lending to solar sector (post-pilot)"},
+   }},
+  {id:"emb-fin",     name:"Embedded Finance",          lane:"finance", tandem:true,
+   stages:{
+    s2:{act:"Designs financial product suite: lease-to-own models, demand guarantees, gender-responsive products; coordinates with MFIs and mobile money",input:"MCF anchor capital; MSME cash-flow data",output:"Finance product design ready for deployment"},
+    s5:{act:"Structures payment arrangements matched to MSME harvest cycles and daily cash flows; activates demand guarantees and vendor factoring",input:"Feasibility assessment; MSME income profile",output:"Finance product activated; payment schedule set"},
+    s7:{act:"Manages incremental payment collection; sweeps daily revenue via mobile money; monitors repayment performance",input:"MSME operational revenue; mobile money rails",output:"Payment data; repayment records; portfolio performance"},
+    s8:{act:"Captures payment flows from MSME market transactions; structures data for Capital Engine portfolio formation",input:"MSME transaction data; Solar Market Platform records",output:"Clean payment flow dataset for aggregation"},
+   }},
+  {id:"cap-eng",     name:"Capital Engine",            lane:"finance", tandem:true,
+   stages:{
+    s2:{act:"Designs portfolio aggregation architecture and credit enhancement instruments in advance of payment data availability",input:"MCF philanthropic anchor; Embedded Finance product design",output:"Portfolio aggregation architecture; first-loss structure"},
+    s9:{act:"Aggregates MSME payment flows into investable portfolios; applies credit enhancement; onboards DFI and impact investors; documents post-grant model",input:"Payment flow data from Stage 7 and 8; Embedded Finance repayment records",output:"Investable portfolio; 4:1 crowded-in capital; post-grant financing model"},
+   }},
+  {id:"mfi",         name:"MFIs",                     lane:"finance", tandem:true,
+   stages:{
+    s5:{act:"Provide solar credit products to MSMEs and micro-enablers; assess applications using Embedded Finance's cash-flow methodology and Supply Layer QA data",input:"MSME credit applications; Embedded Finance product templates",output:"Solar loans approved; credit disbursed"},
+    s7:{act:"Collect incremental loan repayments via agent banking; flag early repayment stress for Micro-Enabler Network intervention",input:"Repayment schedules; mobile money sweeps",output:"Repayment records; performing loan portfolio"},
+    s9:{act:"Co-invest in aggregated TANDEM portfolio; provide track record data to Capital Engine for DFI due diligence",input:"Capital Engine portfolio offer",output:"MFI co-investment; portfolio track record"},
+   }},
+  {id:"mobile-money",name:"Mobile money providers",    lane:"finance", tandem:true,
+   stages:{
+    s7:{act:"Process incremental payment sweeps from MSME accounts; enable booking agent payment facilitation for unbanked MSMEs",input:"MSME mobile wallets; Embedded Finance payment instructions",output:"Payment confirmations; transaction records"},
+    s8:{act:"Enable MSME market transaction payments; facilitate aggregator payment to MSMEs after produce collection",input:"Market transaction instructions",output:"Settled payments; transaction history"},
+   }},
+  {id:"asset-fin",   name:"Asset finance providers",  lane:"finance", tandem:true,
+   stages:{
+    s5:{act:"Structure lease-to-own agreements for solar home systems and preservation equipment; use Supply Layer QA data to underwrite asset performance",input:"MSME demand; Supply Layer equipment certification",output:"Lease-to-own contracts signed"},
+    s7:{act:"Monitor asset performance against lease agreement; intervene if underperformance threatens repayment",input:"Remote monitoring data; repayment records",output:"Asset performance reports; lease portfolio data"},
+   }},
+  {id:"insurance",   name:"Solar asset insurance",     lane:"finance", tandem:false,
+   stages:{
+    s6:{act:"Provide asset insurance against equipment loss, damage, and performance failure (limited uptake currently)",input:"Equipment specifications; installation record",output:"Insurance certificate (where activated)"},
+    s7:{act:"Process claims for failed or underperforming equipment; provide performance guarantee backstop",input:"Remote monitoring data; fault reports",output:"Claims settled; repair cost covered"},
+   }},
+
+  /* ── ENABLER ─────────────────────────────────────── */
+  {id:"CTH",         name:"Clean Tech Hub (CTH)",      lane:"enabler", tandem:true,
+   stages:{
+    s1:{act:"Develops TANDEM consortium coordination infrastructure; MEL plan; safeguarding protocol; aligns all partners to pilot scope",input:"MCF mandate; TANDEM RCN",output:"Project coordination toolkit; MEL framework; SOP set"},
+    s4:{act:"Oversees Demand Engine cluster mapping; ensures inclusion targets (80% women, 10% PWD) are embedded in cluster formation design",input:"Demand Engine cluster maps",output:"Approved cluster strategy; inclusion targets confirmed"},
+    s7:{act:"Manages remote monitoring platform; collects MEL data; produces quarterly progress reports; conducts mid-term evaluation",input:"System performance data; payment data; enabler job quality data",output:"Quarterly reports; MEL evidence; mid-term evaluation"},
+    s9:{act:"Generates pilot evidence report; produces scale recommendations; organises evidence dissemination event for MCF and ecosystem",input:"Full pilot dataset; Capital Engine portfolio results",output:"Final evaluation report; scale recommendation; public evidence asset"},
+   }},
+  {id:"demand-eng",  name:"Demand Engine",             lane:"enabler", tandem:true,
+   stages:{
+    s4:{act:"Conducts cluster mapping; facilitates cooperative formation and enrolment; deploys booking agents; activates Solar Market Platform; develops MSME scorecard and quality rating system",input:"Community data; cooperative networks; AFAN and UNHCR contacts",output:"200+ clusters enrolled; booking agents deployed; platform live"},
+    s5:{act:"Connects enrolled clusters to Embedded Finance and MFI partners; matches MSME demand to vetted enabler supply on platform",input:"Enrolled clusters; vetted enabler listings",output:"MSME-to-finance matches; MSME-to-enabler pipeline"},
+    s8:{act:"Supports market linkage between cluster MSMEs and aggregators; tracks collective supply performance; connects cooperatives to offtakers",input:"MSME supply data; aggregator connections",output:"Cooperative-offtaker agreements; market linkage records"},
+   }},
+  {id:"micro-net",   name:"Micro-Enabler Network",     lane:"enabler", tandem:true,
+   stages:{
+    s1:{act:"Develops technical and non-technical training curricula; defines full-time and independent service agent job pathways; designs quality assurance plan",input:"Supply Layer SOPs; MCF dignified work standards",output:"Training curricula; job pathways; QA plan"},
+    s6:{act:"Coordinates dispatch scheduling for installation teams; manages last-mile logistics; provides first cohort of trained and certified installers for deployment",input:"Demand Engine cluster pipeline; Supply Layer equipment certification",output:"Installations completed; dispatch records; first QA audits"},
+    s7:{act:"Manages ongoing dispatch scheduling; coordinates spare parts replenishment at cluster level; conducts six-monthly enabler performance reviews; provides coaching",input:"Solar Market Platform dispatch queue; repair requests; performance data",output:"Service reliability records; enabler income data; quality ratings updated"},
+   }},
+  {id:"supply-lay",  name:"Supply Layer",              lane:"enabler", tandem:true,
+   stages:{
+    s1:{act:"Develops and publishes technical SOPs for all TANDEM-scope equipment; establishes approved vendor registry; designs pre-shipment inspection protocol; coordinates with SON",input:"International standards; SON frameworks; TANDEM equipment scope",output:"Technical SOP set; approved vendor registry; inspection protocol"},
+    s3:{act:"Administers pre-shipment inspection for all equipment entering TANDEM supply chain; updates approved vendor registry based on compliance",input:"Import declarations; manufacturer documentation",output:"Inspected and certified equipment; non-conforming equipment flagged"},
+    s5:{act:"Conducts technical feasibility and site assessments for each cluster before finance is activated; produces site assessment reports",input:"Cluster maps; equipment specifications",output:"Site assessment reports; technical specifications for finance"},
+    s6:{act:"Conducts post-installation QA audits against SOPs; issues QA certificates before first payment is triggered; identifies and flags non-conforming installations",input:"Completed installations; SOPs",output:"QA certificates; non-conformance reports; quality database"},
+    s7:{act:"Monitors service quality through quarterly audits; updates quality ratings on Solar Market Platform; removes persistently non-compliant enablers from vetted list",input:"Audit data; customer feedback; platform ratings",output:"Quarterly audit reports; updated quality ratings"},
+   }},
+  {id:"installer",   name:"Solar installers",          lane:"enabler", tandem:true,
+   stages:{
+    s6:{act:"Install solar home systems, productive-use appliances, and preservation equipment to Supply Layer SOPs; complete handover to MSME or hub operator",input:"Equipment on-site; Supply Layer SOPs; Micro-Enabler Network dispatch",output:"Installed systems; handover records; QA audit triggered"},
+    s7:{act:"Respond to fault reports via Solar Market Platform dispatch; conduct O&M visits; replace components; complete repair records",input:"Dispatch orders from platform; spare parts from cluster hub",output:"Repaired systems; repair records; response time data"},
+   }},
+  {id:"hub-op",      name:"Hub operators",            lane:"enabler", tandem:true,
+   stages:{
+    s6:{act:"Set up and commission solar hubs and preservation centres according to Supply Layer hub governance framework; onboard MSME members",input:"Hub infrastructure; Supply Layer governance template; Demand Engine MSME enrolment list",output:"Operational hub; onboarded MSME members"},
+    s7:{act:"Manage day-to-day hub operations; collect usage payments from members; maintain equipment according to SOP; log usage per member for Capital Engine",input:"Hub operating procedures; Embedded Finance payment model",output:"Hub usage records; payment collections; operational data"},
+    s8:{act:"Provide preservation and processing services to MSME members during harvest and market access periods; ensure cold chain continuity",input:"MSME harvest and produce flows",output:"Preserved produce; extended market window for MSMEs"},
+   }},
+  {id:"aggregator-en",name:"Aggregators",             lane:"enabler", tandem:true,
+   stages:{
+    s7:{act:"Collect produce from solar-powered MSME clusters within the harvest window; coordinate with Solar Market Platform dispatch for logistics",input:"MSME produce supply; Solar Market Platform schedule",output:"Aggregated produce batches; collection records"},
+    s8:{act:"Transport and sell produce to market buyers and offtakers; use Embedded Finance factoring to bridge payment timing gap; supply data to Capital Engine",input:"Aggregated produce; factoring facility from Embedded Finance",output:"Market sales; buyer payment records; offtaker agreements"},
+   }},
+  {id:"booking-ag",  name:"Booking agents",           lane:"enabler", tandem:true,
+   stages:{
+    s4:{act:"Serve as human interface for digitally excluded MSMEs; visit clusters; translate service needs into Solar Market Platform bookings; facilitate enrolment",input:"Demand Engine deployment mandate; Solar Market Platform access",output:"Digitally excluded MSMEs enrolled; bookings facilitated"},
+    s7:{act:"Facilitate service requests, payment arrangements, and feedback collection on behalf of MSMEs without smartphone or mobile money access",input:"MSME service needs; platform booking interface",output:"Service bookings completed; payments facilitated; feedback recorded"},
+   }},
+
+  /* ── DEMAND ─────────────────────────────────────── */
+  {id:"agric-msme",  name:"Agricultural MSMEs",        lane:"demand", tandem:true,
+   stages:{
+    s4:{act:"Participate in cooperative and cluster formation; articulate solar and preservation needs through booking agents or cooperatives",input:"Demand Engine facilitation",output:"Enrolled in cluster; needs assessed"},
+    s5:{act:"Apply for solar financing through Embedded Finance and MFI channels; accept payment schedule aligned to harvest cycle",input:"Finance product offer; site assessment",output:"Finance agreed; system specified"},
+    s6:{act:"Receive system installation; complete handover with installer; begin using solar-powered equipment",input:"Installed system",output:"Operational solar or preservation equipment"},
+    s7:{act:"Operate solar and preservation equipment; restore productive time; make incremental payments; report faults via booking agent or platform",input:"Operational system; Embedded Finance payment schedule",output:"Productive time restored; payment flows; reduced post-harvest loss"},
+    s8:{act:"Access markets with preserved produce; negotiate better prices due to extended sell window; supply aggregators",input:"Preserved produce; aggregator linkage",output:"Market revenue; income stability"},
+   }},
+  {id:"nonfarm-msme",name:"Non-farm MSMEs",            lane:"demand", tandem:true,
+   stages:{
+    s4:{act:"Enrol in cluster through booking agent or cooperative; articulate power needs and operating hours",input:"Demand Engine facilitation; booking agent",output:"Enrolled in cluster; load profile recorded"},
+    s5:{act:"Access daily-revenue-aligned payment product; accept installation schedule ahead of peak business season",input:"Embedded Finance daily sweep product",output:"Finance agreed; daily payment schedule set"},
+    s6:{act:"Receive solar installation; begin using system to eliminate generator dependency",input:"Installed system",output:"Generator replaced; operating costs falling"},
+    s7:{act:"Operate solar system continuously; make daily micro-payments via mobile money; request repairs via platform",input:"Operational system; mobile money rail",output:"Productive hours extended; payment data generated"},
+    s8:{act:"Generate revenue from extended operating hours; reinvest savings from eliminated generator fuel cost",input:"Revenue from extended operations",output:"Business growth; reinvestment capacity"},
+   }},
+  {id:"coop-msme",   name:"MSME cooperatives",         lane:"demand", tandem:true,
+   stages:{
+    s4:{act:"Serve as organisational vehicle for collective demand aggregation; facilitate member enrolment; adopt hub governance framework",input:"Demand Engine cooperative formation support",output:"Collective demand commitment; governance structure in place"},
+    s5:{act:"Apply for group financing; establish shared payment and usage governance; sign collective service agreement",input:"Embedded Finance group product; hub governance template",output:"Group finance agreed; payment roster in place"},
+    s7:{act:"Enforce hub usage roster among members; collect usage payments; escalate faults through cooperative chair",input:"Hub operational procedures",output:"Collective payment; usage records; dispute resolution"},
+    s8:{act:"Negotiate collectively with aggregators; supply consistent volumes backed by solar-powered preservation",input:"Preserved produce; aggregator connections",output:"Collective offtake agreement; better pricing"},
+   }},
+  {id:"women-msme",  name:"Women-led MSMEs",           lane:"demand", tandem:true,
+   stages:{
+    s4:{act:"Reached through female booking agents and women's cooperative networks; enrol with collateral-free product pathway confirmed before commitment",input:"Female booking agents; cooperative women's groups",output:"Women enrolled; collateral-free pathway confirmed"},
+    s5:{act:"Access gender-responsive finance product — individual name, no household collateral, enterprise cash-flow repayment",input:"Embedded Finance gender-responsive product",output:"Finance in woman's name; individual asset registered"},
+    s7:{act:"Operate system; make payments; access female technician for repairs; track earnings separately from household",input:"Operational system; female technician dispatch",output:"Individual payment record; earnings in own name"},
+    s8:{act:"Access markets independently; build individual credit and business record",input:"Market revenue",output:"Individual credit profile; enterprise track record"},
+   }},
+  {id:"plwd-msme",   name:"PLWD-led MSMEs",            lane:"demand", tandem:true,
+   stages:{
+    s4:{act:"Reached through accessible booking agents; disability-specific load assessment conducted; home visit as default enrolment channel",input:"Accessible booking agent; adapted enrolment process",output:"Disability-specific needs assessed; enrolled"},
+    s5:{act:"Access disability-specific credit appraisal based on productivity gain, not perceived risk; NGO or cooperative co-guarantee",input:"Disability-specific finance product; NGO co-guarantor",output:"Finance approved; system specified for disability needs"},
+    s6:{act:"Receive accessible installation — home visit, adaptive scheduling; technician trained in disability-aware service",input:"Accessible installation protocol; trained technician",output:"System installed; PLWD operational"},
+    s7:{act:"Operate system with accessible interface; access repairs via booking agent home visit dispatch",input:"Accessible monitoring interface; booking agent",output:"Productive time restored; individual payment record"},
+   }},
+  {id:"rdp-msme",    name:"RDP MSMEs",                 lane:"demand", tandem:true,
+   stages:{
+    s4:{act:"Reached through UNHCR/IOM networks and settlement booking agents; community vouching used in place of documentation",input:"UNHCR/IOM partnership; settlement booking agents",output:"RDP MSMEs enrolled via community vouching"},
+    s5:{act:"Access identity-light finance product using community vouching and humanitarian cash transfer history as creditworthiness proxy; shared hub model eliminates individual commitment",input:"Identity-light finance product; NGO co-guarantor",output:"Finance approved without national ID; shared access confirmed"},
+    s7:{act:"Access services through NGO or cooperative intermediary as contract holder; make payments via community payment pool",input:"NGO intermediary; community payment arrangement",output:"Service access; community payment record"},
+   }},
+
+  /* ── DEV ─────────────────────────────────────── */
+  {id:"GIZ",         name:"GIZ / NESP",                lane:"dev", tandem:false,
+   stages:{
+    s1:{act:"Provides technical assistance for solar standards harmonisation; supports regulatory capacity of SON and REA; shares international best practice on off-grid frameworks",input:"German development cooperation mandate",output:"Standards capacity; regulatory support"},
+    s3:{act:"Provides technical advisory on import screening; supports development of pre-shipment inspection capability in Nigeria",input:"International inspection frameworks",output:"Technical assistance to Supply Layer and SON"},
+   }},
+  {id:"UNHCR",       name:"UNHCR and IOM",             lane:"dev", tandem:true,
+   stages:{
+    s4:{act:"Provides community access to refugee and IDP settlements; co-facilitates identity-light enrolment using UNHCR registration as proxy documentation",input:"Settlement relationships; registration data",output:"RDP cluster access; community vouching mechanism"},
+    s5:{act:"Acts as NGO co-guarantor for RDP MSME finance products; facilitates connection to humanitarian cash transfer programmes as repayment proxy",input:"UNHCR guarantee mechanism; cash transfer data",output:"Co-guarantee for RDP finance; creditworthiness proxy established"},
+   }},
+  {id:"AFAN",        name:"Farmers associations",       lane:"dev", tandem:false,
+   stages:{
+    s4:{act:"Provides Demand Engine access to state-level farmer databases and cooperative networks; mobilises member cooperatives for cluster enrolment",input:"Farmer membership records",output:"Cluster leads; cooperative introductions"},
+    s8:{act:"Facilitates market connections for agricultural MSMEs; provides collective bargaining support for cooperative supply agreements",input:"Buyer relationships; market intelligence",output:"Market access; offtaker introductions"},
+   }},
+  {id:"SNV-NGO",     name:"NGOs with solar programmes", lane:"dev", tandem:false,
+   stages:{
+    s4:{act:"Provide community-level access channel to underserved populations; refer existing beneficiaries to TANDEM cluster enrolment; avoid duplication through coordination",input:"Community trust relationships",output:"Community referrals; duplication avoidance"},
+    s6:{act:"May provide community facilitation during installation; safeguarding monitoring during deployment in sensitive communities",input:"Community relationships; safeguarding capacity",output:"Community-facilitated installations; safeguarding oversight"},
+   }},
+];
+
+/* ── FLOWS (what passes between stages) ─────────── */
+const FLOWS=[
+  {from:"s1",to:"s2",label:"Standards, policy, duty framework"},
+  {from:"s2",to:"s3",label:"Equipment + capital committed"},
+  {from:"s3",to:"s4",label:"Equipment in distribution"},
+  {from:"s4",to:"s5",label:"Cluster demand + MSME profiles"},
+  {from:"s5",to:"s6",label:"Finance approved + site spec"},
+  {from:"s6",to:"s7",label:"Installed operational systems"},
+  {from:"s7",to:"s8",label:"Productive time + payment flows"},
+  {from:"s8",to:"s9",label:"Revenue data + payment records"},
+];
+
+/* ═══════════════════════════════════════════════════
+   BUILD UI
+═══════════════════════════════════════════════════ */
+let activeView="all";
+let highlightActor=null;
+
+function laneColor(lane){ return COLORS[lane]||COLORS.govpol; }
+
+/* actor filter groups — build once */
+(function buildActorFilters(){
+  const wrap=document.getElementById("actor-groups");
+  const laneOrder=["govpol","supply","finance","enabler","demand","dev"];
+  const laneNames={"govpol":"Policy & standards","supply":"Solar supply chain","finance":"Finance & capital","enabler":"Service enablers","demand":"MSMEs","dev":"Development"};
+  laneOrder.forEach(laneId=>{
+    const actors=ACTORS.filter(a=>a.lane===laneId);
+    if(!actors.length) return;
+    const grp=document.createElement("div");
+    grp.className="actor-group";
+    const lbl=document.createElement("span");
+    lbl.className="ag-label";
+    lbl.textContent=laneNames[laneId];
+    grp.appendChild(lbl);
+    actors.forEach(a=>{
+      const c=laneColor(a.lane);
+      const btn=document.createElement("button");
+      btn.className="actor-btn";
+      btn.textContent=a.name;
+      btn.dataset.id=a.id;
+      btn.style.borderColor=c.border;
+      btn.style.color=c.text;
+      btn.style.background=a.tandem?c.bg:"#E8E5DC";
+      btn.onclick=()=>toggleActorFilter(a.id,btn,c);
+      grp.appendChild(btn);
+    });
+    wrap.appendChild(grp);
+  });
+})();
+
+function toggleFilters(){
+  const tog=document.getElementById("filter-toggle");
+  const grps=document.getElementById("actor-groups");
+  tog.classList.toggle("open");
+  grps.classList.toggle("open");
+}
+
+function clearActorFilter(){
+  highlightActor=null;
+  document.querySelectorAll(".actor-btn").forEach(b=>{
+    b.classList.remove("active");
+    /* restore original bg */
+    const id=b.dataset.id;
+    const a=ACTORS.find(x=>x.id===id);
+    if(a){ const c=laneColor(a.lane); b.style.background=a.tandem?c.bg:"#E8E5DC"; }
+  });
+  document.getElementById("clear-btn").classList.remove("visible");
+  renderGrid();
+}
+
+function toggleActorFilter(id,btn,c){
+  if(highlightActor===id){
+    clearActorFilter();
+  } else {
+    highlightActor=id;
+    document.querySelectorAll(".actor-btn").forEach(b=>{
+      b.classList.remove("active");
+      const aid=b.dataset.id;
+      const a=ACTORS.find(x=>x.id===aid);
+      if(a){ const cc=laneColor(a.lane); b.style.background=a.tandem?cc.bg:"#E8E5DC"; }
+    });
+    btn.classList.add("active");
+    btn.style.background=c.border;
+    btn.style.color="#fff";
+    document.getElementById("clear-btn").classList.add("visible");
+    renderGrid();
+  }
+}
+
+function setView(v){
+  activeView=v;
+  /* ALWAYS clear actor highlight when switching view */
+  if(highlightActor){
+    highlightActor=null;
+    document.querySelectorAll(".actor-btn").forEach(b=>{
+      b.classList.remove("active");
+      const id=b.dataset.id;
+      const a=ACTORS.find(x=>x.id===id);
+      if(a){ const c=laneColor(a.lane); b.style.background=a.tandem?c.bg:"#E8E5DC"; }
+    });
+    document.getElementById("clear-btn").classList.remove("visible");
+  }
+  document.querySelectorAll(".btn.all,.btn.tandem-only").forEach(b=>b.classList.remove("active"));
+  document.querySelector(".btn."+v.replace("-","\\-")).classList.add("active");
+  renderGrid();
+}
+
+/* ── render grid ─────────────────────────────────── */
+function renderGrid(){
+  const chain=document.getElementById("chain");
+  chain.innerHTML="";
+  const nStages=STAGES.length;
+  /* grid columns: sticky label col + one per stage */
+  chain.style.gridTemplateColumns=`150px repeat(${nStages},minmax(190px,1fr))`;
+
+  /* row 1: stage headers */
+  /* corner */
+  const corner=div("corner");
+  corner.innerHTML=`<p style="font-size:10px;color:var(--hint)">Swim lane \\ Stage</p>`;
+  chain.appendChild(corner);
+  STAGES.forEach((s,si)=>{
+    const h=div("stage-head"+(s.tandem?" tandem-stage":""));
+    h.innerHTML=`<div class="stage-num">${s.num}</div>
+      <div class="stage-name">${s.name.replace("\n","<br>")}</div>
+      <div class="stage-tag ${s.tandem?"tandem":"ecosystem"}">${s.tandem?"TANDEM":"Ecosystem"}</div>
+      <div class="stage-flow">${s.flow.substring(0,80)}…</div>`;
+    h.onclick=()=>showStageDetail(s,si);
+    chain.appendChild(h);
+  });
+
+  /* rows 2+: one per lane */
+  LANES.forEach(lane=>{
+    /* lane label */
+    const lbl=div("lane-header-col");
+    const c=laneColor(lane.id);
+    lbl.innerHTML=`<div class="lane-label" style="color:${c.text};border-color:${c.border}">${lane.label.replace("\n","<br>")}</div>`;
+    chain.appendChild(lbl);
+
+    /* cells per stage */
+    STAGES.forEach(s=>{
+      const cellEl=div("cell");
+      const actorsInCell=ACTORS.filter(a=>a.lane===lane.id && a.stages[s.id]);
+
+      if(actorsInCell.length===0){
+        cellEl.classList.add("cell-empty");
+      } else {
+        actorsInCell.forEach(a=>{
+          const stageData=a.stages[s.id];
+          const show=shouldShow(a,s);
+          if(!show) return;
+          const c2=laneColor(a.lane);
+          const card=document.createElement("div");
+          card.className="actor-card"+(a.tandem?" tandem-actor":"")+(isDimmed(a)?" dimmed":"");
+          card.style.background=a.tandem?c2.bg:"#E8E5DC";
+          card.style.borderColor=c2.border;
+          card.style.color=c2.text;
+          card.innerHTML=`<div class="ac-name">${a.tandem?'<span class="tandem-dot"></span>':''}<span>${a.name}</span></div><div class="ac-act">${stageData.act.substring(0,90)}${stageData.act.length>90?"…":""}</div>`;
+          card.onclick=(e)=>{e.stopPropagation();showActorStageDetail(a,s,stageData);};
+          cellEl.appendChild(card);
+        });
+      }
+      chain.appendChild(cellEl);
+    });
+  });
+
+  /* flow arrow row */
+  const flowRowDiv=div("flow-row");
+  flowRowDiv.style.gridTemplateColumns=`150px repeat(${nStages},minmax(190px,1fr))`;
+  flowRowDiv.style.display="grid";
+  /* empty corner */
+  const fc=div("flow-cell");
+  fc.style.minWidth="150px";
+  fc.style.position="sticky";
+  fc.style.left="0";
+  fc.style.background="var(--surface)";
+  fc.innerHTML=`<span style="font-size:9.5px;color:var(--hint);padding:0 6px">Flows →</span>`;
+  flowRowDiv.appendChild(fc);
+
+  STAGES.forEach((s,si)=>{
+    const fc2=div("flow-cell");
+    const flow=FLOWS.find(f=>f.from===s.id);
+    if(flow){
+      fc2.innerHTML=`<div class="flow-arrow"><span class="flow-label">${flow.label}</span></div>`;
+    }
+    flowRowDiv.appendChild(fc2);
+  });
+  chain.appendChild(flowRowDiv);
+  chain.style.display="grid";
+}
+
+function shouldShow(actor,stage){
+  /* always show if actor has content at this stage — dimming handled via CSS class */
+  if(activeView==="tandem" && !actor.tandem) return false;
+  return !!actor.stages[stage.id];
+}
+function isDimmed(actor){
+  if(!highlightActor) return false;
+  return actor.id!==highlightActor;
+}
+
+function div(cls){
+  const d=document.createElement("div");
+  if(cls) d.className=cls;
+  return d;
+}
+
+/* ── detail panel ────────────────────────────────── */
+function showActorStageDetail(actor,stage,stageData){
+  const c=laneColor(actor.lane);
+  document.getElementById("d-title").textContent=actor.name+" — "+stage.name.replace("\n"," ");
+  const tag=document.getElementById("d-tag");
+  tag.textContent=actor.tandem?"TANDEM participant":"Ecosystem actor";
+  tag.style.background=actor.tandem?c.bg:"var(--gray-lt)";
+  tag.style.color=actor.tandem?c.text:"var(--gray-dk)";
+  tag.style.border="0.5px solid "+(actor.tandem?c.border:"var(--hint)");
+  document.getElementById("d-activity").textContent=stageData.act;
+  document.getElementById("d-input").textContent=stageData.input||"—";
+  document.getElementById("d-output").textContent=stageData.output||"—";
+
+  /* stage context */
+  document.getElementById("d-stage-label").textContent=stage.num+": "+stage.name.replace("\n"," ");
+  document.getElementById("d-stage-desc").textContent=stage.flow;
+  buildStageActors(stage);
+  openDetail();
+}
+
+function showStageDetail(stage,si){
+  document.getElementById("d-title").textContent=stage.num+": "+stage.name.replace("\n"," ");
+  const tag=document.getElementById("d-tag");
+  tag.textContent=stage.tandem?"TANDEM-led stage":"Ecosystem stage";
+  tag.style.background=stage.tandem?"var(--teal-lt)":"var(--gray-lt)";
+  tag.style.color=stage.tandem?"var(--teal-dk)":"var(--gray-dk)";
+  tag.style.border="0.5px solid "+(stage.tandem?"var(--teal)":"var(--hint)");
+  document.getElementById("d-activity").textContent=stage.flow;
+  document.getElementById("d-input").textContent=stage.input;
+  document.getElementById("d-output").textContent=stage.output;
+  document.getElementById("d-stage-label").textContent="All actors at this stage";
+  document.getElementById("d-stage-desc").textContent="";
+  buildStageActors(stage);
+  openDetail();
+}
+
+function buildStageActors(stage){
+  const wrap=document.getElementById("d-stage-actors");
+  wrap.innerHTML="";
+  ACTORS.filter(a=>a.stages[stage.id]).forEach(a=>{
+    const c=laneColor(a.lane);
+    const pill=document.createElement("span");
+    pill.className="stage-actor-pill";
+    pill.textContent=a.name;
+    pill.style.background=a.tandem?c.bg:"var(--gray-lt)";
+    pill.style.color=a.tandem?c.text:"var(--gray-dk)";
+    pill.style.borderColor=a.tandem?c.border:"var(--border-strong)";
+    pill.onclick=()=>{
+      closeDetail();
+      /* open filter section if closed */
+      const tog=document.getElementById("filter-toggle");
+      const grps=document.getElementById("actor-groups");
+      if(!tog.classList.contains("open")){ tog.classList.add("open"); grps.classList.add("open"); }
+      const btn=document.querySelector(`.actor-btn[data-id="${a.id}"]`);
+      if(btn) toggleActorFilter(a.id,btn,c);
+    };
+    wrap.appendChild(pill);
+  });
+}
+
+function openDetail(){ document.getElementById("detail").classList.add("open"); }
+function closeDetail(){ document.getElementById("detail").classList.remove("open"); }
+
+/* kick off */
+renderGrid();
+</script>
+</body>
+</html>
